@@ -47,14 +47,23 @@ class BootstrapBot(irc.bot.SingleServerIRCBot):
         connection.nick(connection.get_nickname() + "_")
 
     def on_privmsg(self, connection, event):
+        """Recieve a command over private messaging, if the source of the message
+        is the bot controller execute commands otherwise do nothing."""
         if event.source.nick == self.config["bot_controller"]:
             try:
                 command = getattr(self, "do_" + event.arguments[0])
             except AttributeError:
                 print("Recieved invalid command.")
                 return False
-            command()
+            command(connection, event)
 
+    def do_test(self, connection, event):
+        """Test command to send the bot controller a message."""
+        print("Test command ran!")
+        try:
+            connection.privmsg(event.source.nick, "Testing.")
+        except:
+            print("Wrong arguments.")
 parser = argparse.ArgumentParser()
 parser.add_argument("control_nick")
 parser.add_argument("bot_nick")
