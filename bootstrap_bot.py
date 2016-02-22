@@ -11,14 +11,21 @@ class Configuration(dict):
     __setitem__ so it can be used like a normal dictionary."""
     def __init__(self, filepath):
         super().__init__(self)
-        config_file = open(filepath)
+        try:
+            config_file = open(filepath)
+        except FileNotFoundError:
+            self.save(filepath)
+            config_file = open(filepath)
         self.update(json.load(config_file))
         config_file.close()
         self._filepath = filepath
 
-    def save(self):
+    def save(self, filepath=None):
         """Save the in memory configuration to disk."""
-        config_file = open(self._filepath)
+        if filepath:
+            config_file = open(filepath, 'w')
+        else:
+            config_file = open(self._filepath, 'w')
         json.dump(self, config_file)
         config_file.close()
         
@@ -45,6 +52,7 @@ class BootstrapBot(irc.bot.SingleServerIRCBot):
                 command = getattr(self, "do_" + event.arguments[0])
             except AttributeError:
                 print("Recieved invalid command.")
+                return False
             command()
 
 parser = argparse.ArgumentParser()
@@ -53,7 +61,8 @@ parser.add_argument("bot_nick")
 parser.add_argument("server_address")
 parser.add_argument("-p", "--port", default=6667)
 arguments = parser.parse_args()
-BootstrapBot(arguments.control_nick,
-             arguments.bot_nick,
-             arguments.server_address,
-             arguments.port)
+bot = BootstrapBot(arguments.control_nick,
+                   arguments.bot_nick,
+                   arguments.server_address,
+                   arguments.port)
+bot.start()
