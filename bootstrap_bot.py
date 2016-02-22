@@ -29,7 +29,7 @@ class BootstrapBot(irc.bot.SingleServerIRCBot):
     it will send them all an invitation to join the channel. Once a threshold of 
     joins has been reached the bot leaves the channel and lets it grow on its own."""
     def __init__(self, control_nick, nickname, server, port=6667):
-        super().__init__(self, [(server, port)], nickname, nickname)
+        irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
         self._controller = control_nick
         self.config = Configuration('config.json')
         self.config["bot_controller"] = self._controller
