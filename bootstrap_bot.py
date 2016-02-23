@@ -1,5 +1,6 @@
 import irc.bot
 import irc.strings
+from irc.client import is_channel
 import json
 import argparse
 
@@ -51,12 +52,30 @@ class BootstrapBot(irc.bot.SingleServerIRCBot):
         is the bot controller execute commands otherwise do nothing."""
         if event.source.nick == self.config["bot_controller"]:
             try:
-                command = getattr(self, "do_" + event.arguments[0])
+                command = getattr(self, "do_" + event.arguments[0].split()[0])
             except AttributeError:
-                print("Recieved invalid command.")
+                print("Recieved invalid command.", event)
                 return False
             command(connection, event)
 
+    def do_join(self, connection, event):
+        """Join a channel target given by the bot controller."""
+        arguments = event.arguments[0].split()
+        try:
+            if is_channel(arguments[1]):
+                connection.join(arguments[1])
+        except IndexError:
+            pass
+
+    def do_part(self, connection, event):
+        """Part a channel target given by the bot controller."""
+        arguments = event.arguments[0].split()
+        try:
+            if is_channel(arguments[1]):
+                connection.part(arguments[1])
+        except IndexError:
+            pass
+        
     def do_test(self, connection, event):
         """Test command to send the bot controller a message."""
         print("Test command ran!")
@@ -64,6 +83,7 @@ class BootstrapBot(irc.bot.SingleServerIRCBot):
             connection.privmsg(event.source.nick, "Testing.")
         except:
             print("Wrong arguments.")
+
 parser = argparse.ArgumentParser()
 parser.add_argument("control_nick")
 parser.add_argument("bot_nick")
