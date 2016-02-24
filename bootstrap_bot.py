@@ -152,11 +152,22 @@ class BootstrapBot(irc.bot.SingleServerIRCBot):
     def on_join(self, connection, event):
         """Determine if the channel has passed the part threshold at which the bot
         should leave."""
-        if (len(self.channels[event.target].users()) >
-            self.config[event.target]["part_threshold"]):
-            connection.part(event.target)
+        try:
+            if (len(self.channels[event.target].users()) >
+                self.config[event.target]["part_threshold"]):
+                connection.part(event.target)
+            else:
+                welcome_msg = ["Welcome to " + event.target + ", to register your",
+                               "interest in this channel, type the word 'register'",
+                               "and you will be invited back later once " +
+                               str(self.config[event.target]["invite_threshold"]) +
+                               " other people have registered as well.", "Type 'help'"
+                               "into the channel for a command listing."]
+                for line in welcome_msg:
+                    connection.notice(event.source.nick, line) 
+        except KeyError:
+            pass
         
-
 class Registrar(dict):
     """Data structure containing a channels registered interested users, how many
     registrations are needed before sending a mass-invite, and how many users need
