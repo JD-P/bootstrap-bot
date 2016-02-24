@@ -162,7 +162,7 @@ class BootstrapBot(irc.bot.SingleServerIRCBot):
                                "and you will be invited back later once " +
                                str(self.config[event.target]["invite_threshold"]) +
                                " other people have registered as well.", "Type 'help'"
-                               "into the channel for a command listing."]
+                               " into the channel for a command listing."]
                 for line in welcome_msg:
                     connection.notice(event.source.nick, line) 
         except KeyError:
