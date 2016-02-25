@@ -136,7 +136,7 @@ class BootstrapBot(irc.bot.SingleServerIRCBot):
             if self.config[event.target].invite_threshold_exceeded():
                 self.mass_invite(connection, event, self.config[event.target])
             else:
-                pass
+                self.config.save()
         else:
             connection.notice(event.source.nick, "You've already registered.")
             
@@ -149,6 +149,17 @@ class BootstrapBot(irc.bot.SingleServerIRCBot):
             connection.invite(nick, event.target)
             time.sleep(1)
 
+    def do_pub_list(self, connection, event):
+        """Send the list of users who have registered their interest in the channel
+        as a notice to user sending the command."""
+        registrar = self.config[event.target]
+        users = registrar.list()
+        msg_header = (str(len(users)) + " of " + str(registrar["invite_threshold"])
+                      + " users have registered interest in " + event.target + ":")
+        connection.notice(event.source.nick, msg_header)
+        for nick in users:
+            connection.notice(event.source.nick, nick)
+            
     def on_join(self, connection, event):
         """Determine if the channel has passed the part threshold at which the bot
         should leave."""
@@ -194,6 +205,10 @@ class Registrar(dict):
         else:
             return False
 
+    def list(self):
+        """Return the registrar list of users interested in the channel."""
+        return self["registrar"]
+        
     def clear(self):
         """Clear the nick list for the channel."""
         self["registrar"] = []
